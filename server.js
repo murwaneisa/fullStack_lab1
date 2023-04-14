@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const musicRoutes = require("./routes/music");
-
+const cors = require("cors");
 require("dotenv").config();
 
 const PORT = process.env.PORT || 3000;
@@ -14,6 +14,7 @@ mongoose
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.use("/api/albums", musicRoutes);
 

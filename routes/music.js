@@ -26,7 +26,12 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    const newMusicAlbum = new musics({ title, artist, year: new Date(year) });
+    const newMusicAlbum = new musics({
+      title,
+      artist,
+      year: new Date(year).toISOString().slice(0, 10),
+    });
+
     const savedMusicAlbum = await newMusicAlbum.save();
     res.json(savedMusicAlbum);
   } catch (error) {
