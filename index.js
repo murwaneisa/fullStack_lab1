@@ -17,30 +17,6 @@ app.use(express.json());
 
 app.use("/api/albums", musicRoutes);
 
-/* app.get("/albums", (req, res) => {
-  try {
-    const musicSchema = new musicSchema.find();
-    res.json(musicSchema);
-  } catch (error) {
-    res.status(500).send({ message: "error to get music albums" });
-  }
-});
-
-app.get("/albums/:name", (req, res) => {
-  try {
-    const music = new musicSchema.find({ name: req.params.name });
-    if (music.length > 0) {
-      res.status(201).json(music);
-    } else {
-      res.status(404).send({ message: "music album not found" });
-    }
-  } catch (error) {
-    res.status(500).send({ message: "error to get music albums" });
-  }
-});
-
- */
-
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}!`);
 });
