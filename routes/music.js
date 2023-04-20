@@ -41,7 +41,7 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/:title", async (req, res) => {
-  console.log("first", req.params.title);
+  console.log("the title", req.params.title);
   try {
     const findMusic = await musics.find({ title: req.params.title });
     if (findMusic.length > 0) {
