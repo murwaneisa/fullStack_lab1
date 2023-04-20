@@ -13,7 +13,6 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const { title, artist, year } = req.body;
-
   if (!title || !artist) {
     return res.status(400).send({ message: "Please enter all fields" });
   }
@@ -41,7 +40,6 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/:title", async (req, res) => {
-  console.log("the title", req.params.title);
   try {
     const findMusic = await musics.find({ title: req.params.title });
     if (findMusic.length > 0) {
@@ -85,7 +83,7 @@ router.put("/:id", async (req, res) => {
     res.json({ message: "Album updated successfully", album: updatedAlbum });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error for update" });
   }
 });
 

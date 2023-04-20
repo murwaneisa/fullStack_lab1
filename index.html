@@ -13,26 +13,65 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   </head>
   <body>
-    <div class="container">
-      <table id="albums-table" class="table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Artist</th>
-            <th>Year</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Albums will be dynamically added here -->
-        </tbody>
-      </table>
-    </div>
+    <div class="container py-5">
+      <h1 class="text-center mt-5 mb-3 pb-5">album panel</h1>
 
-    <div class="container" id="show_details">
-      <!-- render details -->
-    </div>
+      <p class="text-muted">Add a new album</p>
 
+      <!-- add album -->
+      <form method="POST" action="/api/albums">
+        <div class="container d-flex align-alims-center">
+          <div class="form-group d-flex">
+            <input
+              type="text"
+              class="form-control"
+              id="title"
+              name="title"
+              placeholder="Enter your name"
+            />
+            <input
+              type="text"
+              class="form-control"
+              id="artist"
+              name="artist"
+              placeholder="Enter artist"
+            />
+            <input
+              type="year"
+              class="form-control"
+              id="artist"
+              name="year"
+              placeholder="2022-02-02"
+            />
+          </div>
+          <div class="ml-2">
+            <button type="submit" class="btn btn-primary btn-sm">create</button>
+          </div>
+        </div>
+      </form>
+      <!-- end of add album -->
+      <!-- show album  -->
+      <div class="container">
+        <table id="albums-table" class="table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Artist</th>
+              <th>Year</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Albums will be dynamically added here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="container" id="show_details">
+        <!-- render details -->
+      </div>
+      <!-- end of show album -->
+    </div>
     <script>
       fetch("http://localhost:3000/api/albums")
         .then((response) => response.json())
@@ -43,17 +82,21 @@
           data.forEach((album) => {
             const row = document.createElement("tr");
             // Add the album data to the row
-            row.innerHTML = `
-        <td>${album.title}</td>
-        <td>${album.artist}</td>
-        <td>${album.year}</td>
-        <td>
-          <button class=" btn btn-secondary update-btn" data-id="${album._id}">Update</button>
-          <button class=" btn btn-danger delete-btn" data-id="${album._id}">Delete</button>
-          <button class="btn btn-primary details-btn" data-id="${album._id}" data-title="${album.title}"  >Details</button>
 
-        </td>
-      `;
+            const date = new Date(album.year);
+            const formattedDate = date.toISOString().slice(0, 10); // to get only YYYYMMDD
+
+            row.innerHTML = `
+              <td>${album.title}</td>
+              <td>${album.artist}</td>
+              <td>${formattedDate}</td>
+              <td>
+                <button class=" btn btn-secondary btn-sm update-btn" data-id="${album._id}" data-update-title="${album.title}" data-artist="${album.artist}" data-year="${formattedDate}">Update</button>
+                <button class=" btn btn-danger btn-sm delete-btn" data-id="${album._id}">Delete</button>
+                <button class="btn btn-primary btn-sm details-btn" data-id="${album._id}" data-title="${album.title}"  >Details</button>
+
+              </td>
+            `;
 
             tableBody.appendChild(row);
           });
@@ -82,47 +125,138 @@
                 console.error("Error deleting album:", error);
                 document.querySelector(
                   "#show_details"
-                ).innerHTML = ` <h2>server error to delete the album</h2>`;
+                ).innerHTML = ` <p class="text-muted">server error to delete the album</p>`;
               });
           }
         }
 
-        if (event.target.classList.contains("details-btn")) {
-          const albumDetailsTitle = event.target.getAttribute("data-title");
+        // Update album form database
+        if (event.target.classList.contains("update-btn")) {
+          const albumId = event.target.getAttribute("data-id");
+          const albumTitle = event.target.getAttribute("data-update-title");
+          const albumArtist = event.target.getAttribute("data-artist");
+          const albumYear = event.target.getAttribute("data-year");
 
-          const searchTerm = encodeURIComponent(albumDetailsTitle);
+          document.querySelector("#show_details").innerHTML = `<form ">
+                  <div class="container d-flex align-alims-center">
+                    <div class="form-group d-flex">
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="title-update"
+                        name="title"
+                        placeholder="${albumTitle}"
+                      />
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="artist-update"
+                        name="artist"
+                        placeholder="${albumArtist}"
+                      />
+                      <input
+                        type="year"
+                        class="form-control"
+                        id="year-update"
+                        name="year"
+                        placeholder="${albumYear}"
+                      />
+                    </div>
+                    <div class="ml-2">
+                      <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                    </div>
+                  </div>
+                </form> `;
+
+          const updateForm = document.querySelector("#show_details form");
+
+          updateForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+
+            const title = document.querySelector("#title-update").value;
+            const artist = document.querySelector("#artist-update").value;
+            const year = document.querySelector("#year-update").value;
+
+            if (!title && !artist && !year) {
+              console.log("empty");
+              return;
+            }
+
+            const data = {
+              title: title,
+              artist: artist,
+              year: year,
+            };
+            console.log("first", data.title, data.artist);
+
+            fetch(`/api/albums/${albumId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            })
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error("Network response was not ok");
+                }
+                return response.json();
+              })
+              .then((data) => {
+                console.log(data);
+                document.querySelector(
+                  "#show_details"
+                ).innerHTML = ` <P class="text-muted"> album successfully update it !</P>`;
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                document.querySelector(
+                  "#show_details"
+                ).innerHTML = ` <P class="text-muted"> error to delete album !</P>`;
+              });
+          });
+        }
+        //views album
+        if (event.target.classList.contains("details-btn")) {
+          const albumsTitle = event.target.getAttribute("data-title");
+
+          //encode the word space for the album title: example: i love
+          const searchTerm = encodeURIComponent(albumsTitle);
 
           // get data to show  specific album
           fetch(`http://localhost:3000/api/albums/${searchTerm}`)
             .then((response) => response.json())
             .then((data) => {
               const { title, artist, year } = data[0];
+
+              const date = new Date(year);
+              const formattedDate = date.toISOString().slice(0, 10); // to get only YYYYMMDD
               //console.log("album", artist);
               document.querySelector(
                 "#show_details"
               ).innerHTML = ` <h2>ALbum Details</h2>
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Firstname</th>
-                    <th>Lastname</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>${title}</td>
-                    <td>${artist}</td>
-                    <td>${year}</td>
-                  </tr>
-                </tbody>
-              </table>`;
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Firstname</th>
+                          <th>Lastname</th>
+                          <th>Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>${title}</td>
+                          <td>${artist}</td>
+                          <td>${formattedDate}</td>
+                        </tr>
+                      </tbody>
+                    </table>`;
             })
             .catch((error) => {
               console.error(" error");
               document.querySelector(
                 "#show_details"
-              ).innerHTML = ` <h2>server error to get the album</h2>`;
+              ).innerHTML = ` <h2 class="text-muted"> error to get the album</h2>`;
             });
         }
       });
